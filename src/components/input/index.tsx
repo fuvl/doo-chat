@@ -11,7 +11,7 @@ export function Input({
   const classes = `${baseClasses} ${className}`.trim();
 
   return (
-    <div>
+    <>
       {label && (
         <label htmlFor={id} className={hideLabel ? 'sr-only' : 'block text-sm font-medium text-text-primary mb-2'}>
           {label}
@@ -22,6 +22,6 @@ export function Input({
         className={classes}
         {...props}
       />
-    </div>
+    </>
   );
 }

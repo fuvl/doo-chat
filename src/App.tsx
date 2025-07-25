@@ -1,6 +1,7 @@
 import { AuthProvider, useAuth } from './contexts/auth';
 import { Layout } from './components/layout';
 import { Login } from './pages/login';
+import { Chat } from './pages/chat';
 import "./App.css";
 
 function AppContent() {
@@ -11,9 +12,7 @@ function AppContent() {
       {!username ? (
         <Login />
       ) : (
-        <div className="app">
-          <h1>Welcome, {username}!</h1>
-        </div>
+        <Chat />
       )}
     </Layout>
   );

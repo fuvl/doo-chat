@@ -17,9 +17,10 @@ export function Login() {
   };
 
   return (
-    <div className="h-screen flex flex-col bg-[url('/src/assets/body-bg.png')] bg-repeat">
+    <div className="h-screen flex flex-col">
       <div className="flex-1 flex items-center justify-center px-6">
-        <div className="w-full max-w-sm space-y-8 bg-white p-8 rounded-sm shadow-lg">
+        <div className="max-w-[640px] mx-auto w-full flex justify-center">
+          <div className="w-full max-w-sm space-y-8 bg-white p-8 rounded-sm shadow-lg">
           <div>
             <h2 className="text-center text-2xl font-semibold text-text-primary">
               Welcome to Doodle Chat
@@ -49,6 +50,7 @@ export function Login() {
               Start Chatting
             </Button>
           </form>
+          </div>
         </div>
       </div>
     </div>
