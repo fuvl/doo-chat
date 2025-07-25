@@ -3,13 +3,13 @@ import type { MessageProps } from "./message.types";
 export function Message({ message, isOwn }: MessageProps) {
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleString("en-US", {
-      day: "numeric",
-      month: "short",
-      year: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    });
+    const day = date.getDate();
+    const month = date.toLocaleString("en-US", { month: "short" });
+    const year = date.getFullYear();
+    const hours = date.getHours();
+    const minutes = date.getMinutes().toString().padStart(2, "0");
+
+    return `${day} ${month} ${year} ${hours}:${minutes}`;
   };
 
   return (
@@ -24,7 +24,9 @@ export function Message({ message, isOwn }: MessageProps) {
         aria-label={`Message from ${message.author}`}
         tabIndex={0}
       >
-        <div className="text-text-secondary text-sm mb-1">{message.author}</div>
+        <div className="text-text-secondary text-sm mb-0.5">
+          {message.author}
+        </div>
         <div className="text-text-primary mb-2 break-words">
           {message.message}
         </div>
