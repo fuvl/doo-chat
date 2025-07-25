@@ -1,4 +1,8 @@
-import type { Message, CreateMessagePayload, GetMessagesParams } from '../types/message';
+import type {
+  Message,
+  CreateMessagePayload,
+  GetMessagesParams,
+} from '../types/message';
 
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const AUTH_TOKEN = import.meta.env.VITE_AUTH_TOKEN;
@@ -14,7 +18,7 @@ if (!AUTH_TOKEN) {
 class ApiService {
   private headers = {
     'Content-Type': 'application/json',
-    'Authorization': `Bearer ${AUTH_TOKEN}`
+    Authorization: `Bearer ${AUTH_TOKEN}`,
   };
 
   private decodeHtmlEntities(text: string): string {
@@ -27,31 +31,35 @@ class ApiService {
       '&#x27;': "'",
       '&#x2F;': '/',
       '&#x60;': '`',
-      '&#x3D;': '='
+      '&#x3D;': '=',
     };
-    
-    return text.replace(/&amp;|&lt;|&gt;|&quot;|&#39;|&#x27;|&#x2F;|&#x60;|&#x3D;/g, 
-      match => htmlEntities[match] || match);
+
+    return text.replace(
+      /&amp;|&lt;|&gt;|&quot;|&#39;|&#x27;|&#x2F;|&#x60;|&#x3D;/g,
+      (match) => htmlEntities[match] || match
+    );
   }
 
   private decodeMessage(message: Message): Message {
     return {
       ...message,
       message: this.decodeHtmlEntities(message.message),
-      author: this.decodeHtmlEntities(message.author)
+      author: this.decodeHtmlEntities(message.author),
     };
   }
 
-  async getMessages({ after, before, limit }: GetMessagesParams = {}): Promise<Message[]> {
+  async getMessages({ after, before, limit }: GetMessagesParams = {}): Promise<
+    Message[]
+  > {
     const queryParams = new URLSearchParams();
-    
+
     if (after) queryParams.append('after', after);
     if (before) queryParams.append('before', before);
     if (limit) queryParams.append('limit', limit.toString());
 
     const response = await fetch(`${API_BASE_URL}/messages?${queryParams}`, {
       method: 'GET',
-      headers: this.headers
+      headers: this.headers,
     });
 
     if (!response.ok) {
@@ -59,14 +67,17 @@ class ApiService {
     }
 
     const messages: Message[] = await response.json();
-    return messages.map(message => this.decodeMessage(message));
+    return messages.map((message) => this.decodeMessage(message));
   }
 
-  async createMessage({ message, author }: CreateMessagePayload): Promise<Message> {
+  async createMessage({
+    message,
+    author,
+  }: CreateMessagePayload): Promise<Message> {
     const response = await fetch(`${API_BASE_URL}/messages`, {
       method: 'POST',
       headers: this.headers,
-      body: JSON.stringify({ message, author })
+      body: JSON.stringify({ message, author }),
     });
 
     if (!response.ok) {

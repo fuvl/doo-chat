@@ -1,13 +1,13 @@
-import { useEffect, forwardRef } from "react";
-import type { ChatInputProps } from "./chat-input.types";
+import { useEffect, forwardRef } from 'react';
+import type { ChatInputProps } from './chat-input.types';
 
 export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
   (
-    { value, onChange, onSubmit, placeholder = "Message", disabled = false },
+    { value, onChange, onSubmit, placeholder = 'Message', disabled = false },
     ref
   ) => {
     const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-      if (e.key === "Enter" && !e.shiftKey) {
+      if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         onSubmit();
       }
@@ -18,9 +18,9 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
     };
 
     useEffect(() => {
-      const textarea = ref && "current" in ref ? ref.current : null;
+      const textarea = ref && 'current' in ref ? ref.current : null;
       if (textarea) {
-        textarea.style.height = "auto";
+        textarea.style.height = 'auto';
         textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
       }
     }, [value, ref]);

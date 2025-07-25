@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef } from "react";
-import type { FormEvent } from "react";
-import { useAuth } from "../../contexts/auth";
-import { Button } from "../../components/button";
-import { ChatInput } from "../../components/chat-input";
-import { Message } from "../../components/message";
-import { apiService } from "../../services/api";
-import type { Message as MessageType } from "../../types/message";
+import { useState, useEffect, useRef } from 'react';
+import type { FormEvent } from 'react';
+import { useAuth } from '../../contexts/auth';
+import { Button } from '../../components/button';
+import { ChatInput } from '../../components/chat-input';
+import { Message } from '../../components/message';
+import { apiService } from '../../services/api';
+import type { Message as MessageType } from '../../types/message';
 
 export function Chat() {
   const { username } = useAuth();
@@ -17,7 +17,7 @@ export function Chat() {
     hasMoreOlderMessages: true,
     loadingOlder: false,
   });
-  const [newMessage, setNewMessage] = useState("");
+  const [newMessage, setNewMessage] = useState('');
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -26,7 +26,7 @@ export function Chat() {
     if (container) {
       container.scrollTo({
         top: container.scrollHeight,
-        behavior: smooth ? "smooth" : "auto",
+        behavior: smooth ? 'smooth' : 'auto',
       });
     }
   };
@@ -68,8 +68,8 @@ export function Chat() {
       }
     };
 
-    container.addEventListener("scroll", handleScroll);
-    return () => container.removeEventListener("scroll", handleScroll);
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
   }, [chatState.firstMessageTime, chatState.hasMoreOlderMessages]);
 
   const fetchAllMessages = async () => {
@@ -94,7 +94,7 @@ export function Chat() {
         loadingOlder: false,
       });
     } catch (error) {
-      console.error("Failed to fetch messages:", error);
+      console.error('Failed to fetch messages:', error);
       setChatState((prev) => ({ ...prev, loading: false }));
     }
   };
@@ -122,7 +122,7 @@ export function Chat() {
         }));
       }
     } catch (error) {
-      console.error("Failed to fetch new messages:", error);
+      console.error('Failed to fetch new messages:', error);
     }
   };
 
@@ -172,7 +172,7 @@ export function Chat() {
         }));
       }
     } catch (error) {
-      console.error("Failed to fetch older messages:", error);
+      console.error('Failed to fetch older messages:', error);
       setChatState((prev) => ({ ...prev, loadingOlder: false }));
     }
   };
@@ -188,13 +188,13 @@ export function Chat() {
         message: trimmedMessage,
         author: username,
       });
-      setNewMessage("");
+      setNewMessage('');
       // Fetch new messages immediately after sending
       fetchNewMessages();
       // Scroll to bottom after sending
       setTimeout(() => scrollToBottom(), 100);
     } catch (error) {
-      console.error("Failed to send message:", error);
+      console.error('Failed to send message:', error);
     }
   };
 
@@ -250,10 +250,10 @@ export function Chat() {
 
         {/* Accessibility announcements */}
         <div className="sr-only" aria-live="polite" aria-atomic="true">
-          {chatState.loadingOlder && "Loading older messages"}
+          {chatState.loadingOlder && 'Loading older messages'}
           {!chatState.hasMoreOlderMessages &&
             chatState.messages.length > 0 &&
-            "You have reached the beginning of the conversation"}
+            'You have reached the beginning of the conversation'}
         </div>
       </div>
     </div>
