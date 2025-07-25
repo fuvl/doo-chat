@@ -10,31 +10,36 @@ A real-time messaging application built with React, TypeScript, and Tailwind CSS
 ## Setup
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd doo-chat
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
 3. **Create environment file**
-   
+
    Create a `.env` file in the root directory with the following variables:
+
    ```env
    VITE_API_BASE_URL=<your-api-base-url>
    VITE_AUTH_TOKEN=<your-auth-token>
    ```
 
    Example:
+
    ```env
    VITE_API_BASE_URL=http://localhost:3000/api/v1
    VITE_AUTH_TOKEN=super-secret-doodle-token
    ```
 
 4. **Start the development server**
+
    ```bash
    npm run dev
    ```
@@ -81,6 +86,10 @@ The production preview will be available at `http://localhost:4173`
 4. Scroll to the top to load older messages
 5. Press Enter to send messages, Shift+Enter for new lines
 
+## Development Notes
+
+- **Toast Notifications in Development**: You may see duplicate toast messages in development server due to React StrictMode double-invoking effects. This is normal behavior and won't occur in production builds.
+
 ## Tech Stack
 
 - React 19
@@ -88,3 +97,4 @@ The production preview will be available at `http://localhost:4173`
 - Tailwind CSS v4
 - Vite
 - ESLint
+- React Toastify (for error notifications)

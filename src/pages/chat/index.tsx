@@ -5,6 +5,7 @@ import { Button } from '../../components/button';
 import { ChatInput } from '../../components/chat-input';
 import { Message } from '../../components/message';
 import { apiService } from '../../services/api';
+import { toast } from 'react-toastify';
 import type { Message as MessageType } from '../../types/message';
 
 export function Chat() {
@@ -95,6 +96,7 @@ export function Chat() {
       });
     } catch (error) {
       console.error('Failed to fetch messages:', error);
+      toast.error('Failed to load messages');
       setChatState((prev) => ({ ...prev, loading: false }));
     }
   };
@@ -123,6 +125,7 @@ export function Chat() {
       }
     } catch (error) {
       console.error('Failed to fetch new messages:', error);
+      toast.error('Failed to fetch new messages');
     }
   };
 
@@ -173,6 +176,7 @@ export function Chat() {
       }
     } catch (error) {
       console.error('Failed to fetch older messages:', error);
+      toast.error('Failed to load older messages');
       setChatState((prev) => ({ ...prev, loadingOlder: false }));
     }
   };
@@ -195,6 +199,7 @@ export function Chat() {
       setTimeout(() => scrollToBottom(), 100);
     } catch (error) {
       console.error('Failed to send message:', error);
+      toast.error('Failed to send message');
     }
   };
 
