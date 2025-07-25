@@ -13,17 +13,18 @@ export function Message({ message, isOwn }: MessageProps) {
   };
 
   return (
-    <div className="w-full">
+    <div className={`w-full flex ${isOwn ? 'justify-end' : 'justify-start'}`}>
       <div
         className={`
-          max-w-[400px] rounded-lg shadow-md p-4
+          max-w-[240px] sm:max-w-[420px] rounded-md p-4 border border-border
           ${isOwn ? 'bg-message-own' : 'bg-message-other'}
+          shadow-sm
         `}
       >
         <div className="text-text-secondary text-sm mb-1">
           {message.author}
         </div>
-        <div className="text-text-primary mb-2">
+        <div className="text-text-primary mb-2 break-words">
           {message.message}
         </div>
         <div className="text-text-secondary text-xs">

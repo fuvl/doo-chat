@@ -1,7 +1,15 @@
 import type { Message, CreateMessagePayload, GetMessagesParams } from '../types/message';
 
-const API_BASE_URL = 'http://localhost:3000/api/v1';
-const AUTH_TOKEN = 'doodle';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+const AUTH_TOKEN = import.meta.env.VITE_AUTH_TOKEN;
+
+if (!API_BASE_URL) {
+  throw new Error('VITE_API_BASE_URL is not defined in environment variables');
+}
+
+if (!AUTH_TOKEN) {
+  throw new Error('VITE_AUTH_TOKEN is not defined in environment variables');
+}
 
 class ApiService {
   private headers = {
