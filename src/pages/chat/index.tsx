@@ -191,6 +191,8 @@ export function Chat() {
       setNewMessage("");
       // Fetch new messages immediately after sending
       fetchNewMessages();
+      // Scroll to bottom after sending
+      setTimeout(() => scrollToBottom(), 100);
     } catch (error) {
       console.error("Failed to send message:", error);
     }
