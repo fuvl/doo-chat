@@ -15,15 +15,20 @@ export function Chat() {
     lastMessageTime: null as string | null,
     firstMessageTime: null as string | null,
     hasMoreOlderMessages: true,
+    loadingOlder: false,
   });
   const [newMessage, setNewMessage] = useState("");
-  const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   const scrollToBottom = (smooth = true) => {
-    messagesEndRef.current?.scrollIntoView({
-      behavior: smooth ? "smooth" : "auto",
-    });
+    const container = messagesContainerRef.current;
+    if (container) {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: smooth ? "smooth" : "auto",
+      });
+    }
   };
 
   // Initial load
@@ -43,6 +48,8 @@ export function Chat() {
   useEffect(() => {
     if (!chatState.loading && chatState.messages.length > 0) {
       scrollToBottom(false);
+      // Focus the input for immediate typing
+      inputRef.current?.focus();
     }
   }, [chatState.loading]);
 
@@ -84,6 +91,7 @@ export function Chat() {
         firstMessageTime:
           sortedMessages.length > 0 ? sortedMessages[0].createdAt : null,
         hasMoreOlderMessages: sortedMessages.length === 50,
+        loadingOlder: false,
       });
     } catch (error) {
       console.error("Failed to fetch messages:", error);
@@ -124,6 +132,9 @@ export function Chat() {
     const container = messagesContainerRef.current;
     if (!container) return;
 
+    // Set loading state
+    setChatState((prev) => ({ ...prev, loadingOlder: true }));
+
     // Save scroll height before adding older messages
     const previousScrollHeight = container.scrollHeight;
 
@@ -143,6 +154,7 @@ export function Chat() {
           ...prev,
           messages: [...sortedOlderMessages, ...prev.messages],
           firstMessageTime: sortedOlderMessages[0].createdAt,
+          loadingOlder: false,
         }));
 
         // Adjust scroll position to maintain current view
@@ -156,10 +168,12 @@ export function Chat() {
         setChatState((prev) => ({
           ...prev,
           hasMoreOlderMessages: false,
+          loadingOlder: false,
         }));
       }
     } catch (error) {
       console.error("Failed to fetch older messages:", error);
+      setChatState((prev) => ({ ...prev, loadingOlder: false }));
     }
   };
 
@@ -184,7 +198,13 @@ export function Chat() {
 
   return (
     <div className="h-screen flex flex-col">
-      <div ref={messagesContainerRef} className="flex-1 overflow-y-auto">
+      <div
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto"
+        role="log"
+        aria-label="Chat messages"
+        aria-live="polite"
+      >
         <div className="max-w-[640px] mx-auto px-6 py-6 space-y-4">
           {chatState.loading ? (
             <p className="text-text-secondary">Loading messages...</p>
@@ -201,24 +221,41 @@ export function Chat() {
               />
             ))
           )}
-          <div ref={messagesEndRef} />
         </div>
       </div>
-      <div className="px-4 py-4 bg-bottom-bar">
+      <div
+        className="px-4 py-4 bg-bottom-bar"
+        role="form"
+        aria-label="Send message"
+      >
         <div className="max-w-[640px] mx-auto flex items-center space-x-3">
           <ChatInput
+            ref={inputRef}
             value={newMessage}
             onChange={setNewMessage}
             onSubmit={() => handleSubmit()}
             placeholder="Message"
           />
-          <Button 
-            onClick={() => handleSubmit()} 
+          <Button
+            onClick={() => handleSubmit()}
             disabled={!newMessage.trim()}
             className="flex-shrink-0"
+            aria-label="Send message"
           >
             Send
           </Button>
+        </div>
+        <div id="message-help" className="sr-only">
+          Press Enter to send, Shift+Enter for new line. Scroll to top to load
+          older messages.
+        </div>
+
+        {/* Accessibility announcements */}
+        <div className="sr-only" aria-live="polite" aria-atomic="true">
+          {chatState.loadingOlder && "Loading older messages"}
+          {!chatState.hasMoreOlderMessages &&
+            chatState.messages.length > 0 &&
+            "You have reached the beginning of the conversation"}
         </div>
       </div>
     </div>
