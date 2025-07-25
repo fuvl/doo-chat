@@ -17,6 +17,31 @@ class ApiService {
     'Authorization': `Bearer ${AUTH_TOKEN}`
   };
 
+  private decodeHtmlEntities(text: string): string {
+    const htmlEntities: Record<string, string> = {
+      '&amp;': '&',
+      '&lt;': '<',
+      '&gt;': '>',
+      '&quot;': '"',
+      '&#39;': "'",
+      '&#x27;': "'",
+      '&#x2F;': '/',
+      '&#x60;': '`',
+      '&#x3D;': '='
+    };
+    
+    return text.replace(/&amp;|&lt;|&gt;|&quot;|&#39;|&#x27;|&#x2F;|&#x60;|&#x3D;/g, 
+      match => htmlEntities[match] || match);
+  }
+
+  private decodeMessage(message: Message): Message {
+    return {
+      ...message,
+      message: this.decodeHtmlEntities(message.message),
+      author: this.decodeHtmlEntities(message.author)
+    };
+  }
+
   async getMessages({ after, before, limit }: GetMessagesParams = {}): Promise<Message[]> {
     const queryParams = new URLSearchParams();
     
@@ -33,7 +58,8 @@ class ApiService {
       throw new Error(`Failed to fetch messages: ${response.statusText}`);
     }
 
-    return response.json();
+    const messages: Message[] = await response.json();
+    return messages.map(message => this.decodeMessage(message));
   }
 
   async createMessage({ message, author }: CreateMessagePayload): Promise<Message> {
@@ -47,7 +73,8 @@ class ApiService {
       throw new Error(`Failed to create message: ${response.statusText}`);
     }
 
-    return response.json();
+    const createdMessage: Message = await response.json();
+    return this.decodeMessage(createdMessage);
   }
 }
 
