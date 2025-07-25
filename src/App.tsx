@@ -1,16 +1,29 @@
-import { useState } from 'react';
+import { AuthProvider, useAuth } from './contexts/auth';
 import { Layout } from './components/layout';
+import { Login } from './pages/login';
 import "./App.css";
 
-function App() {
-  const [username, setUsername] = useState<string | null>(null);
+function AppContent() {
+  const { username } = useAuth();
 
   return (
     <Layout>
-      <div className="app">
-        <h1>Doodle Chat</h1>
-      </div>
+      {!username ? (
+        <Login />
+      ) : (
+        <div className="app">
+          <h1>Welcome, {username}!</h1>
+        </div>
+      )}
     </Layout>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
