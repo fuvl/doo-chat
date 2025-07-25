@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import type { FormEvent } from "react";
 import { useAuth } from "../../contexts/auth";
 import { Button } from "../../components/button";
-import { Input } from "../../components/input";
+import { ChatInput } from "../../components/chat-input";
 import { Message } from "../../components/message";
 import { apiService } from "../../services/api";
 import type { Message as MessageType } from "../../types/message";
@@ -163,8 +163,8 @@ export function Chat() {
     }
   };
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (e?: FormEvent) => {
+    e?.preventDefault();
     const trimmedMessage = newMessage.trim();
 
     if (!trimmedMessage || !username) return;
@@ -204,20 +204,23 @@ export function Chat() {
           <div ref={messagesEndRef} />
         </div>
       </div>
-      <form onSubmit={handleSubmit} className="px-4 py-4 bg-bottom-bar">
-        <div className="max-w-[640px] mx-auto flex space-x-3">
-          <Input
-            type="text"
-            placeholder="Message"
-            className="flex-1 bg-white border-0"
+      <div className="px-4 py-4 bg-bottom-bar">
+        <div className="max-w-[640px] mx-auto flex items-center space-x-3">
+          <ChatInput
             value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
+            onChange={setNewMessage}
+            onSubmit={() => handleSubmit()}
+            placeholder="Message"
           />
-          <Button type="submit" disabled={!newMessage.trim()}>
+          <Button 
+            onClick={() => handleSubmit()} 
+            disabled={!newMessage.trim()}
+            className="flex-shrink-0"
+          >
             Send
           </Button>
         </div>
-      </form>
+      </div>
     </div>
   );
 }
