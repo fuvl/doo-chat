@@ -29,7 +29,7 @@ export const ChatInput = forwardRef<HTMLTextAreaElement, ChatInputProps>(
       <textarea
         ref={ref}
         placeholder={placeholder}
-        className="flex-1 bg-white border-0 px-4 py-3 rounded-sm focus:outline-none focus:ring-2 focus:ring-focus focus:border-transparent placeholder-text-secondary resize-none min-h-[48px] max-h-[120px] overflow-y-auto"
+        className="flex-1 bg-white border-0 px-2 py-3 rounded-sm focus:outline-none focus:ring-2 focus:ring-focus focus:border-transparent placeholder-text-secondary resize-none min-h-[48px] max-h-[120px] overflow-y-auto"
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}

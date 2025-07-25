@@ -223,12 +223,8 @@ export function Chat() {
           )}
         </div>
       </div>
-      <div
-        className="px-4 py-4 bg-bottom-bar"
-        role="form"
-        aria-label="Send message"
-      >
-        <div className="max-w-[640px] mx-auto flex items-center space-x-3">
+      <div className="p-2 bg-bottom-bar" role="form" aria-label="Send message">
+        <div className="max-w-[640px] mx-auto flex items-center space-x-2 sm:px-6">
           <ChatInput
             ref={inputRef}
             value={newMessage}
