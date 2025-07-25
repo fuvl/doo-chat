@@ -12,7 +12,7 @@ A real-time messaging application built with React, TypeScript, and Tailwind CSS
 1. **Clone the repository**
    ```bash
    git clone <repository-url>
-   cd doodle-message
+   cd doo-chat
    ```
 
 2. **Install dependencies**
