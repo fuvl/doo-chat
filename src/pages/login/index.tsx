@@ -17,7 +17,7 @@ export function Login() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-dvh flex flex-col">
       <div className="flex-1 flex items-center justify-center px-6">
         <div className="max-w-[640px] mx-auto w-full flex justify-center">
           <div className="w-full max-w-sm space-y-8 bg-white p-8 rounded-sm shadow-lg">

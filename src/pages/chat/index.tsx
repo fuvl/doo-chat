@@ -21,6 +21,7 @@ export function Chat() {
   const [newMessage, setNewMessage] = useState('');
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+  const topSentinelRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (smooth = true) => {
     const container = messagesContainerRef.current;
@@ -54,24 +55,32 @@ export function Chat() {
     }
   }, [chatState.loading]);
 
-  // Handle scroll to top for loading older messages
+  // Handle intersection for loading older messages
   useEffect(() => {
-    const container = messagesContainerRef.current;
-    if (!container) return;
+    const sentinel = topSentinelRef.current;
+    if (!sentinel) return;
 
-    const handleScroll = () => {
-      if (
-        container.scrollTop === 0 &&
-        chatState.firstMessageTime &&
-        chatState.hasMoreOlderMessages
-      ) {
-        fetchOlderMessages();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const entry = entries[0];
+        if (
+          entry.isIntersecting &&
+          chatState.firstMessageTime &&
+          chatState.hasMoreOlderMessages &&
+          !chatState.loadingOlder
+        ) {
+          fetchOlderMessages();
+        }
+      },
+      {
+        root: messagesContainerRef.current,
+        threshold: 0.1,
       }
-    };
+    );
 
-    container.addEventListener('scroll', handleScroll);
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [chatState.firstMessageTime, chatState.hasMoreOlderMessages]);
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [chatState.firstMessageTime, chatState.hasMoreOlderMessages, chatState.loadingOlder]);
 
   const fetchAllMessages = async () => {
     try {
@@ -138,8 +147,10 @@ export function Chat() {
     // Set loading state
     setChatState((prev) => ({ ...prev, loadingOlder: true }));
 
-    // Save scroll height before adding older messages
+    // Save more precise scroll position info
     const previousScrollHeight = container.scrollHeight;
+    const previousScrollTop = container.scrollTop;
+    const scrollFromBottom = previousScrollHeight - previousScrollTop - container.clientHeight;
 
     try {
       const data = await apiService.getMessages({
@@ -160,11 +171,12 @@ export function Chat() {
           loadingOlder: false,
         }));
 
-        // Adjust scroll position to maintain current view
+        // Restore scroll position more accurately for fast scrolling
         requestAnimationFrame(() => {
           const newScrollHeight = container.scrollHeight;
-          const heightDifference = newScrollHeight - previousScrollHeight;
-          container.scrollTop = container.scrollTop + heightDifference;
+          // Calculate new scroll position to maintain distance from bottom
+          const newScrollTop = newScrollHeight - scrollFromBottom - container.clientHeight;
+          container.scrollTop = Math.max(0, newScrollTop);
         });
       } else {
         // No more older messages available
@@ -204,7 +216,7 @@ export function Chat() {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-dvh flex flex-col">
       <div
         ref={messagesContainerRef}
         className="flex-1 overflow-y-auto"
@@ -213,6 +225,18 @@ export function Chat() {
         aria-live="polite"
       >
         <div className="max-w-[640px] mx-auto px-6 py-6 space-y-4">
+          {/* Intersection Observer sentinel */}
+          <div ref={topSentinelRef} className="h-1 w-full" />
+          
+          {chatState.loadingOlder && (
+            <div className="flex justify-center py-2">
+              <div className="flex items-center space-x-2 text-text-secondary text-sm">
+                <div className="animate-spin h-4 w-4 border-2 border-text-secondary border-t-transparent rounded-full"></div>
+                <span>Loading older messages...</span>
+              </div>
+            </div>
+          )}
+
           {chatState.loading ? (
             <p className="text-text-secondary">Loading messages...</p>
           ) : chatState.messages.length === 0 ? (
