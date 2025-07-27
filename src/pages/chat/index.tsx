@@ -6,6 +6,7 @@ import { ChatInput } from '../../components/chat-input';
 import { Message } from '../../components/message';
 import { apiService } from '../../services/api';
 import { toast } from 'react-toastify';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 import type { Message as MessageType } from '../../types/message';
 
 export function Chat() {
@@ -21,7 +22,6 @@ export function Chat() {
   const [newMessage, setNewMessage] = useState('');
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
-  const topSentinelRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = (smooth = true) => {
     const container = messagesContainerRef.current;
@@ -31,6 +31,55 @@ export function Chat() {
         behavior: smooth ? 'smooth' : 'auto',
       });
     }
+  };
+
+  const updateChatState = (
+    type: 'initial' | 'older' | 'newer',
+    data: MessageType[],
+    hasMore?: boolean
+  ) => {
+    setChatState((prev) => {
+      switch (type) {
+        case 'initial':
+          return {
+            ...prev,
+            messages: data,
+            loading: false,
+            lastMessageTime:
+              data.length > 0 ? data[data.length - 1].createdAt : null,
+            firstMessageTime: data.length > 0 ? data[0].createdAt : null,
+            hasMoreOlderMessages: data.length === 50,
+            loadingOlder: false,
+          };
+        case 'older':
+          if (data.length > 0) {
+            return {
+              ...prev,
+              messages: [...data, ...prev.messages],
+              firstMessageTime: data[0].createdAt,
+              hasMoreOlderMessages: hasMore ?? true,
+              loadingOlder: false,
+            };
+          } else {
+            return {
+              ...prev,
+              hasMoreOlderMessages: false,
+              loadingOlder: false,
+            };
+          }
+        case 'newer':
+          if (data.length > 0) {
+            return {
+              ...prev,
+              messages: [...prev.messages, ...data],
+              lastMessageTime: data[data.length - 1].createdAt,
+            };
+          }
+          return prev;
+        default:
+          return prev;
+      }
+    });
   };
 
   // Initial load
@@ -55,54 +104,33 @@ export function Chat() {
     }
   }, [chatState.loading]);
 
-  // Handle intersection for loading older messages
-  useEffect(() => {
-    const sentinel = topSentinelRef.current;
-    if (!sentinel) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const entry = entries[0];
-        if (
-          entry.isIntersecting &&
-          chatState.firstMessageTime &&
-          chatState.hasMoreOlderMessages &&
-          !chatState.loadingOlder
-        ) {
-          fetchOlderMessages();
-        }
-      },
-      {
-        root: messagesContainerRef.current,
-        threshold: 0.1,
-      }
-    );
-
-    observer.observe(sentinel);
-    return () => observer.disconnect();
-  }, [chatState.firstMessageTime, chatState.hasMoreOlderMessages, chatState.loadingOlder]);
+  // Infinite scroll hook for loading older messages
+  const { sentinelRef } = useInfiniteScroll<MessageType>({
+    fetchData: () =>
+      apiService.getMessages({
+        before: chatState.firstMessageTime ?? undefined,
+      }),
+    hasMore: chatState.hasMoreOlderMessages,
+    isLoading: chatState.loadingOlder,
+    onLoadingStart: () => {
+      setChatState((prev) => ({ ...prev, loadingOlder: true }));
+    },
+    onDataLoaded: (data, hasMore) => {
+      updateChatState('older', data, hasMore);
+    },
+    onError: (error) => {
+      console.error('Failed to fetch older messages:', error);
+      toast.error('Failed to load older messages');
+      setChatState((prev) => ({ ...prev, loadingOlder: false }));
+    },
+    enabled: !!chatState.firstMessageTime,
+    containerRef: messagesContainerRef,
+  });
 
   const fetchAllMessages = async () => {
     try {
       const data = await apiService.getMessages();
-      // Sort messages by creation date (oldest first)
-      const sortedMessages = data.sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-      );
-
-      setChatState({
-        messages: sortedMessages,
-        loading: false,
-        lastMessageTime:
-          sortedMessages.length > 0
-            ? sortedMessages[sortedMessages.length - 1].createdAt
-            : null,
-        firstMessageTime:
-          sortedMessages.length > 0 ? sortedMessages[0].createdAt : null,
-        hasMoreOlderMessages: sortedMessages.length === 50,
-        loadingOlder: false,
-      });
+      updateChatState('initial', data);
     } catch (error) {
       console.error('Failed to fetch messages:', error);
       toast.error('Failed to load messages');
@@ -118,78 +146,10 @@ export function Chat() {
         after: chatState.lastMessageTime,
       });
 
-      if (data.length > 0) {
-        // Sort new messages
-        const sortedNewMessages = data.sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-
-        setChatState((prev) => ({
-          ...prev,
-          messages: [...prev.messages, ...sortedNewMessages],
-          lastMessageTime:
-            sortedNewMessages[sortedNewMessages.length - 1].createdAt,
-        }));
-      }
+      updateChatState('newer', data);
     } catch (error) {
       console.error('Failed to fetch new messages:', error);
       toast.error('Failed to fetch new messages');
-    }
-  };
-
-  const fetchOlderMessages = async () => {
-    if (!chatState.firstMessageTime) return;
-
-    const container = messagesContainerRef.current;
-    if (!container) return;
-
-    // Set loading state
-    setChatState((prev) => ({ ...prev, loadingOlder: true }));
-
-    // Save more precise scroll position info
-    const previousScrollHeight = container.scrollHeight;
-    const previousScrollTop = container.scrollTop;
-    const scrollFromBottom = previousScrollHeight - previousScrollTop - container.clientHeight;
-
-    try {
-      const data = await apiService.getMessages({
-        before: chatState.firstMessageTime,
-      });
-
-      if (data.length > 0) {
-        // Sort older messages
-        const sortedOlderMessages = data.sort(
-          (a, b) =>
-            new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
-        );
-
-        setChatState((prev) => ({
-          ...prev,
-          messages: [...sortedOlderMessages, ...prev.messages],
-          firstMessageTime: sortedOlderMessages[0].createdAt,
-          loadingOlder: false,
-        }));
-
-        // Restore scroll position more accurately for fast scrolling
-        requestAnimationFrame(() => {
-          const newScrollHeight = container.scrollHeight;
-          // Calculate new scroll position to maintain distance from bottom
-          const newScrollTop = newScrollHeight - scrollFromBottom - container.clientHeight;
-          container.scrollTop = Math.max(0, newScrollTop);
-        });
-      } else {
-        // No more older messages available
-        setChatState((prev) => ({
-          ...prev,
-          hasMoreOlderMessages: false,
-          loadingOlder: false,
-        }));
-      }
-    } catch (error) {
-      console.error('Failed to fetch older messages:', error);
-      toast.error('Failed to load older messages');
-      setChatState((prev) => ({ ...prev, loadingOlder: false }));
     }
   };
 
@@ -225,9 +185,7 @@ export function Chat() {
         aria-live="polite"
       >
         <div className="max-w-[640px] mx-auto px-6 py-6 space-y-4">
-          {/* Intersection Observer sentinel */}
-          <div ref={topSentinelRef} className="h-1 w-full" />
-          
+          <div ref={sentinelRef} className="h-1 w-full" />
           {chatState.loadingOlder && (
             <div className="flex justify-center py-2">
               <div className="flex items-center space-x-2 text-text-secondary text-sm">
@@ -236,7 +194,6 @@ export function Chat() {
               </div>
             </div>
           )}
-
           {chatState.loading ? (
             <p className="text-text-secondary">Loading messages...</p>
           ) : chatState.messages.length === 0 ? (

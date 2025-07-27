@@ -67,7 +67,12 @@ class ApiService {
     }
 
     const messages: Message[] = await response.json();
-    return messages.map((message) => this.decodeMessage(message));
+    const decodedMessages = messages.map((message) => this.decodeMessage(message));
+    
+    // Sort array (API returns newest first, we want oldest first)
+    return decodedMessages.sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
   }
 
   async createMessage({
