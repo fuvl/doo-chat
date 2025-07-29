@@ -4,7 +4,7 @@ A real-time messaging application built with React, TypeScript, and Tailwind CSS
 
 ## Prerequisites
 
-- Node.js (v18 or higher)
+- Node.js (v22 or higher) - Required for Vite 7
 - npm or yarn
 
 ## Setup
